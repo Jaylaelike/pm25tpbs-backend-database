@@ -1,0 +1,396 @@
+{
+    "uid": "environmental-monitoring",
+    "title": "Environmental Monitoring Dashboard",
+    "tags": [
+        "iot",
+        "sensors",
+        "environmental"
+    ],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 1,
+    "refresh": "5s",
+    "time": {
+        "from": "now-1h",
+        "to": "now"
+    },
+    "panels": [
+        {
+            "id": 1,
+            "title": "Temperature",
+            "type": "timeseries",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 0
+            },
+            "targets": [
+                {
+                    "refId": "A",
+                    "query": "from(bucket: \"sensor_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"environmental_sensors\")\n  |> filter(fn: (r) => r._field == \"temperature\")",
+                    "datasource": {
+                        "type": "influxdb",
+                        "uid": "InfluxDB"
+                    }
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "celsius",
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "lineWidth": 2,
+                        "fillOpacity": 10,
+                        "showPoints": "never"
+                    },
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            },
+                            {
+                                "value": 30,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 35,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom"
+                }
+            }
+        },
+        {
+            "id": 2,
+            "title": "Current Temperature",
+            "type": "stat",
+            "gridPos": {
+                "h": 4,
+                "w": 6,
+                "x": 12,
+                "y": 0
+            },
+            "targets": [
+                {
+                    "refId": "A",
+                    "query": "from(bucket: \"sensor_data\")\n  |> range(start: -1m)\n  |> filter(fn: (r) => r._measurement == \"environmental_sensors\")\n  |> filter(fn: (r) => r._field == \"temperature\")\n  |> last()",
+                    "datasource": {
+                        "type": "influxdb",
+                        "uid": "InfluxDB"
+                    }
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "celsius",
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            },
+                            {
+                                "value": 30,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 35,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "id": 3,
+            "title": "Humidity",
+            "type": "timeseries",
+            "gridPos": {
+                "h": 8,
+                "w": 12,
+                "x": 0,
+                "y": 8
+            },
+            "targets": [
+                {
+                    "refId": "A",
+                    "query": "from(bucket: \"sensor_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"environmental_sensors\")\n  |> filter(fn: (r) => r._field == \"humidity\")",
+                    "datasource": {
+                        "type": "influxdb",
+                        "uid": "InfluxDB"
+                    }
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "percent",
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "lineWidth": 2,
+                        "fillOpacity": 10,
+                        "showPoints": "never"
+                    },
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "blue"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "id": 4,
+            "title": "Current Humidity",
+            "type": "stat",
+            "gridPos": {
+                "h": 4,
+                "w": 6,
+                "x": 12,
+                "y": 4
+            },
+            "targets": [
+                {
+                    "refId": "A",
+                    "query": "from(bucket: \"sensor_data\")\n  |> range(start: -1m)\n  |> filter(fn: (r) => r._measurement == \"environmental_sensors\")\n  |> filter(fn: (r) => r._field == \"humidity\")\n  |> last()",
+                    "datasource": {
+                        "type": "influxdb",
+                        "uid": "InfluxDB"
+                    }
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "percent",
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "blue"
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "id": 5,
+            "title": "Air Quality (PM Levels)",
+            "type": "timeseries",
+            "gridPos": {
+                "h": 8,
+                "w": 18,
+                "x": 0,
+                "y": 16
+            },
+            "targets": [
+                {
+                    "refId": "PM1",
+                    "query": "from(bucket: \"sensor_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"environmental_sensors\")\n  |> filter(fn: (r) => r._field == \"pm1\")",
+                    "datasource": {
+                        "type": "influxdb",
+                        "uid": "InfluxDB"
+                    }
+                },
+                {
+                    "refId": "PM2.5",
+                    "query": "from(bucket: \"sensor_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"environmental_sensors\")\n  |> filter(fn: (r) => r._field == \"pm2_5\")",
+                    "datasource": {
+                        "type": "influxdb",
+                        "uid": "InfluxDB"
+                    }
+                },
+                {
+                    "refId": "PM10",
+                    "query": "from(bucket: \"sensor_data\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r._measurement == \"environmental_sensors\")\n  |> filter(fn: (r) => r._field == \"pm10\")",
+                    "datasource": {
+                        "type": "influxdb",
+                        "uid": "InfluxDB"
+                    }
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "conμgm3",
+                    "color": {
+                        "mode": "palette-classic"
+                    },
+                    "custom": {
+                        "lineWidth": 2,
+                        "fillOpacity": 5,
+                        "showPoints": "never"
+                    },
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            },
+                            {
+                                "value": 50,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 100,
+                                "color": "orange"
+                            },
+                            {
+                                "value": 150,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                }
+            },
+            "options": {
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom",
+                    "showLegend": true
+                }
+            }
+        },
+        {
+            "id": 6,
+            "title": "Statistics",
+            "type": "stat",
+            "gridPos": {
+                "h": 8,
+                "w": 6,
+                "x": 18,
+                "y": 8
+            },
+            "targets": [
+                {
+                    "refId": "TempAvg",
+                    "query": "from(bucket: \"sensor_data\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"environmental_sensors\")\n  |> filter(fn: (r) => r._field == \"temperature\")\n  |> mean()\n  |> map(fn: (r) => ({ _value: r._value, _field: \"Avg Temp\" }))",
+                    "datasource": {
+                        "type": "influxdb",
+                        "uid": "InfluxDB"
+                    }
+                },
+                {
+                    "refId": "PM25Avg",
+                    "query": "from(bucket: \"sensor_data\")\n  |> range(start: -1h)\n  |> filter(fn: (r) => r._measurement == \"environmental_sensors\")\n  |> filter(fn: (r) => r._field == \"pm2_5\")\n  |> mean()\n  |> map(fn: (r) => ({ _value: r._value, _field: \"Avg PM2.5\" }))",
+                    "datasource": {
+                        "type": "influxdb",
+                        "uid": "InfluxDB"
+                    }
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    }
+                },
+                "overrides": [
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Avg Temp"
+                        },
+                        "properties": [
+                            {
+                                "id": "unit",
+                                "value": "celsius"
+                            }
+                        ]
+                    },
+                    {
+                        "matcher": {
+                            "id": "byName",
+                            "options": "Avg PM2.5"
+                        },
+                        "properties": [
+                            {
+                                "id": "unit",
+                                "value": "conμgm3"
+                            }
+                        ]
+                    }
+                ]
+            },
+            "options": {
+                "graphMode": "none",
+                "orientation": "auto"
+            }
+        },
+        {
+            "id": 7,
+            "title": "Current PM2.5",
+            "type": "gauge",
+            "gridPos": {
+                "h": 8,
+                "w": 6,
+                "x": 18,
+                "y": 16
+            },
+            "targets": [
+                {
+                    "refId": "A",
+                    "query": "from(bucket: \"sensor_data\")\n  |> range(start: -1m)\n  |> filter(fn: (r) => r._measurement == \"environmental_sensors\")\n  |> filter(fn: (r) => r._field == \"pm2_5\")\n  |> last()",
+                    "datasource": {
+                        "type": "influxdb",
+                        "uid": "InfluxDB"
+                    }
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "conμgm3",
+                    "min": 0,
+                    "max": 200,
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": 0,
+                                "color": "green"
+                            },
+                            {
+                                "value": 50,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 100,
+                                "color": "orange"
+                            },
+                            {
+                                "value": 150,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    ]
+}
