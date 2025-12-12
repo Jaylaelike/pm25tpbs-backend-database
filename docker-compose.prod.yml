@@ -1,0 +1,114 @@
+version: '3.8'
+
+services:
+  # InfluxDB Time-Series Database
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: iot-influxdb
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=admin
+      - DOCKER_INFLUXDB_INIT_PASSWORD=adminpassword123
+      - DOCKER_INFLUXDB_INIT_ORG=iot_monitoring
+      - DOCKER_INFLUXDB_INIT_BUCKET=sensor_data
+      - DOCKER_INFLUXDB_INIT_RETENTION=30d
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=my-super-secret-admin-token-change-me
+    networks:
+      - iot-network
+    restart: always
+    healthcheck:
+      test: [ "CMD", "influx", "ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # Node.js Application (Pre-built from Docker Hub)
+  nodejs-app:
+    image: jaylaelove/pm25tpbs-backend-database:latest
+    container_name: iot-nodejs-app
+    ports:
+      - "3001:3001"
+    environment:
+      # InfluxDB Configuration
+      - INFLUXDB_URL=http://influxdb:8086
+      - INFLUXDB_TOKEN=my-super-secret-admin-token-change-me
+      - INFLUXDB_ORG=iot_monitoring
+      - INFLUXDB_BUCKET=sensor_data
+
+      # MQTT Configuration
+      - MQTT_HOST=172.16.202.63
+      - MQTT_PORT=1883
+      - MQTT_USERNAME=admin
+      - MQTT_PASSWORD=public
+      - MQTT_TOPIC=sensor/data
+
+      # WebSocket Configuration
+      - WS_URL=ws://172.16.202.63:8083/mqtt
+
+      # Application Configuration
+      - NODE_ENV=production
+      - LOG_LEVEL=info
+      - PORT=3001
+
+      # Batch Configuration
+      - BATCH_SIZE=100
+      - BATCH_INTERVAL=5000
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      influxdb:
+        condition: service_healthy
+    networks:
+      - iot-network
+    restart: always
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/health", "||", "exit", "1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Grafana Dashboard
+  grafana:
+    image: grafana/grafana:latest
+    container_name: iot-grafana
+    ports:
+      - "3002:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=
+      - GF_SERVER_ROOT_URL=http://localhost:3002
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+    depends_on:
+      - influxdb
+    networks:
+      - iot-network
+    restart: always
+    healthcheck:
+      test: [ "CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health", "||", "exit", "1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+networks:
+  iot-network:
+    driver: bridge
+
+volumes:
+  influxdb-data:
+    driver: local
+  influxdb-config:
+    driver: local
+  grafana-data:
+    driver: local
