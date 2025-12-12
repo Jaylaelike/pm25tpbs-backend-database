@@ -1,4 +1,4 @@
-# Use Node.js 20 Alpine for better npm support
+# Use Node.js 20 Alpine for better compatibility
 FROM node:20-alpine
 
 # Set working directory
@@ -7,8 +7,8 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --omit=dev
+# Install dependencies (production only)
+RUN npm ci --only=production
 
 # Copy application source
 COPY src/ ./src/
